@@ -1,7 +1,7 @@
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: sample-app-template
+  name: sample-health-app-template
   title: Create a health sample application with a CI pipeline
   description: Create a starter application with a CI pipeline
   tags:
