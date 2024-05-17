@@ -198,6 +198,34 @@ spec:
         repoUrl: https://${{ parameters.git_host_url }}/${{ parameters.git_owner_name }}/${{ parameters.app_name }}-manifest.git
         path: 'argocd/'
 
+    - id: manifest_template
+      name: Generating the K8s Manifest Component
+      action: fetch:template
+      input:
+        url: ./manifest-skeleton
+        copyWithoutTemplating:
+          - .github/workflows/
+        values:
+          git: ${{ parameters.git }}
+          git_host_url: ${{ parameters.git_host_url }}
+          git_owner_name: ${{ parameters.git_owner_name }}
+          app_name: ${{ parameters.app_name }}
+          owner: ${{ parameters.owner }}
+          system: ${{ parameters.system }}
+          description: ${{ parameters.description }}
+        targetPath: ./tenant-manifest
+
+    - id: publish-manifest-to-github
+      if: ${{ parameters.git == "github" }}
+      name: Publish Manifest Repository to GitHub
+      action: publish:github
+      input:
+        repoUrl: ${{ parameters.git_host_url }}?owner=${{ parameters.git_owner_name }}&repo=${{ parameters.app_name }}-manifest
+        repoVisibility: public
+        sourcePath: ./tenant-manifest
+        defaultBranch: develop
+        protectDefaultBranch: false
+
   output:
     links:
       - title: Open the Source Code Repository
