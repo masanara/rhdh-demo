@@ -1,4 +1,4 @@
-apiVersion: scaffolder.backstage.io/v1beta3
+piVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
   name: sample-app-template
@@ -42,6 +42,7 @@ spec:
             catalogFilter:
               kind:
                 - System
+
     - title: Provide information about the git to used
       required:
         - git
@@ -73,7 +74,7 @@ spec:
                   type: string
                   description: Specify the GitHub Organization or User to register the repository
   steps:
-    - id: app-template
+    - id: app_template
       name: Generating the Application Source Code Component
       action: fetch:template
       input:
@@ -99,34 +100,6 @@ spec:
         defaultBranch: develop
         protectDefaultBranch: false
 
-    - id: manifest-template
-      name: Generating the K8s Manifest Component
-      action: fetch:template
-      input:
-        url: ./manifest-skeleton
-        copyWithoutTemplating:
-          - .github/workflows/
-        values:
-          git: ${{ parameters.git }}
-          git_host_url: ${{ parameters.git_host_url }}
-          git_owner_name: ${{ parameters.git_owner_name }}
-          app_name: ${{ parameters.app_name }}
-          owner: ${{ parameters.owner }}
-          system: ${{ parameters.system }}
-          description: ${{ parameters.description }}
-        targetPath: ./tenant-manifest
-
-    - id: publish-manifest-to-github
-      if: ${{ parameters.git == "github" }}
-      name: Publish Manifest Repository to GitHub
-      action: publish:github
-      input:
-        repoUrl: ${{ parameters.git_host_url }}?owner=${{ parameters.git_owner_name }}&repo=${{ parameters.app_name }}-manifest
-        repoVisibility: public
-        sourcePath: ./tenant-manifest
-        defaultBranch: develop
-        protectDefaultBranch: false
-
     - id: register-to-github
       if: ${{ parameters.git == "github" }}
       name: Registering the Catalog Info Component to GitHub
@@ -134,17 +107,6 @@ spec:
       input:
         repoContentsUrl: ${{ steps['publish-app-to-github'].output.repoContentsUrl }}
         catalogInfoPath: "/catalog-info.yaml"
-
-    - id: create-argocd-resources
-      name: Create ArgoCD Resources
-      action: argocd:create-resources
-      input:
-        appName: ${{ parameters.app_name }}-bootstrap
-        argoInstance: main
-        namespace: openshift-gitops
-        repoUrl: https://${{ parameters.git_host_url }}/${{ parameters.git_owner_name }}/${{ parameters.app_name }}-manifest.git
-        path: 'argocd/'
-
   output:
     links:
       - title: Open the Source Code Repository
@@ -154,4 +116,3 @@ spec:
         if: ${{ parameters.git == "github" }}
         icon: catalog
         entityRef: ${{ steps['register-to-github'].output.entityRef }}
-
